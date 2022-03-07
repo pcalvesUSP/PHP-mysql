@@ -1,0 +1,48 @@
+version: '3.8'
+
+networks:
+   net-php:
+      driver: bridge
+
+services:
+  nginx-server:
+    image: nginx:1.21.6-alpine-perl
+    container_name: nginx-server
+    ports:
+    - 8000:80
+    networks:
+    - net-php
+    volumes:
+    - ./app:/var/www
+    - ./docker-compose/nginx/:/etc/nginx/conf.d
+    restart: always
+    links:
+    - php-server
+
+  mysql-db:
+    image: mysql:8.0
+    container_name: mysql-db
+    ports:
+    - 3306:3306
+    networks:
+    - net-php 
+    volumes:
+    - ./mysql-data:/docker-entrypoint-initdb.d #qualquer arquivo sql colocado aqui será importado automaticamente
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: xpto123
+      MYSQL_DATABASE: db_ecommerce
+      MYSQL_USER: db_ecommerce
+      MYSQL_PASSWORD: vend@s100
+
+  php-server:
+    build:
+      context: ./app
+      dockerfile: Dockerfile
+    #image: priscilaalv/php:7.4-fpm-alpine
+    container_name: php-server
+    networks:
+    - net-php
+    volumes:
+    - ./app:/var/www
+    restart: always
